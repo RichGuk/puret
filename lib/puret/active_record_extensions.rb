@@ -29,17 +29,20 @@ module Puret
           # attribute getter
           define_method attribute do
             # return previously setted attributes if present
-            return puret_attributes[I18n.locale][attribute] if puret_attributes[I18n.locale][attribute]
+            return puret_attributes[I18n.locale][attribute] unless puret_attributes[I18n.locale][attribute].blank?
             return if new_record?
 
             # Lookup chain:
             # if translation not present in current locale,
             # use default locale, if present.
             # Otherwise use first translation
-            translation = translations.detect { |t| t.locale.to_sym == I18n.locale } ||
-              translations.detect { |t| t.locale.to_sym == puret_default_locale } ||
-              translations.first
-
+            if detection = translations.detect { |t| t.locale.to_sym == I18n.locale }
+              return detection[attribute] if detection[attribute]
+            end
+            if detection = translations.detect { |t| t.locale.to_sym == puret_default_locale }
+              return detection[attribute] if detection[attribute]
+            end
+            translation = translations.first
             translation ? translation[attribute] : nil
           end
         end
